@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<head>
+<!--<meta http-equiv="Content-Type" content="text/html; charset=utf-8">-->
+
+<!-- To suit Internet Explorer 8-->
+<meta http-equiv="X-UA-Compatible" content="IE=8">
+<title>Product Design</title>
+    <style>
+    
+        body{
+            /*background: #F8ECC2;*/
+            background-image: url(images/resize-coffee.jpg) ;
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+        }    
+        
+        table {
+            font-family: 'Open Sans', sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+            opacity: 0.7;
+            
+        /*table-layout: fixed;*/
+        }
+
+        th, td,tr {
+            text-align: left;   
+            padding: 8px;
+           /* border: 1px solid #DCDCDC;*/
+            
+        }
+
+        tr:nth-child(even){background-color: #f2f2f3}
+        tr:nth-child(odd){background-color: #F8F8F8}
+
+        th {
+            
+            background-color:#bcbcbc;
+          /* background: none;*/
+            color: black;
+        }
+        tr:hover {background-color: #DCDCDC}
+        
+      /*  .search-box {
+             width: 300px;
+              height: 50px;
+              background: #2b303b;
+              border: none;
+              font-size: 10pt;
+              float: left;
+              color: #63717f;
+              padding-left: 45px;
+              -webkit-border-radius: 5px;
+              -moz-border-radius: 5px;
+              border-radius: 5px;
+            
+        }*/
+        
+     /*   #search{
+            
+            margin: 10px;
+            //width: 300px;
+        }*/
+    </style>
+
+	<!-- CDN Links to Jquery,Sharepoint Plus and Font Awesome -->
+	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css">
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/sharepointplus/3.12.0/sharepointplus.min.js"></script>
+    
+	<script type="text/javascript">
+	   
+	       var column=0;
+        /*Load getSummaryFilter when the page is loaded*/
+		$(document).ready(function()
+        {
+			     
+            getSummaryFilter();
+            
+            $('.search-box').keyup(function(e)
+            {
+                /* Useful DOM data and selectors */
+                var $input = $(this),
+                inputContent = $input.val().toLowerCase(),
+                /*indicate the parents of this element*/
+                //$panel = $input.parents('.filterable'),
+                //column = $panel.find('.filters th').index($input.parents('th')),
+                $table = $('.table tbody'),
+                $rows = $table.find('tr');
+
+
+                /* Dirtiest filter function ever ;) */
+                var $filteredRows = $rows.filter(function(){
+                    // On that row, find the table data row
+                    //var value = $(this).find('td').eq(1).text().toLowerCase();
+                    var value = $(this).find('td').eq(column).text().toLowerCase();
+
+                    return value.indexOf(inputContent) === -1;
+
+
+                });
+                /* Clean previous no-result if exist */
+                $table.find('.no-result').remove();
+                /* Show all rows, hide filtered ones (never do that outside of a demo ! xD) */
+                $rows.show();
+
+                //$filteredRows.find('td').hide();
+                $filteredRows.hide();
+                /* Prepend no-result row if all rows are filtered */
+                if ($filteredRows.length === $rows.length)
+                {
+                    $table.append($('<tr class="no-result"><td colspan="'+ $table.find('tr').length +'">No result found</td></tr>'));
+
+                }
+            });
+            
+                    
+            $( "#filter" ).change(function()
+            {
+                if($('#filter').val()=="Title")
+                {    column=0;
+                    $('.search-box').attr("placeholder", "Project Title");
+                }
+                else if($('#filter').val()=="Project Manager")  
+                {    column=1;
+                    $('.search-box').attr("placeholder", "Project Manager");
+                }
+
+                console.log($('#filter').val());
+
+            });
+
+              
+        });	
+        
+        
+        /*Function to convert sharepoint date to browers date*/
+        function convertDateSP(dateSP)
+        {
+            if(dateSP != null)
+            {             
+                /*Sharepoint date formate :2014-09-06 00:00:00*/
+                var components=dateSP.split(/\D/);
+                var kickoff=components[2]+"/"+components[1]+"/"+components[0];
+                return kickoff;
+            }
+            
+            return "NA";
+            
+        }
+        
+			
+		function getSummaryFilter()
+		{
+			$SP().list('Projects').get({fields:"Title,Assigned_x0020_To,Description,Segment,Kickoff_x0020_Date,Actual_x0020_PWS1,Actual_x0020_PCM1,Project_x0020_Status,Current_x0020_Status,Comments"},function(data)
+			{
+                var html2 = "";						
+                for (var i=0; i<data.length; i++) 
+                {
+                    html2 += "<tr><td>"+data[i].getAttribute("Title")+"</td><td>"+data[i].getAttribute("Assigned_x0020_To")+"</td><td>"+data[i].getAttribute("Description")+"</td><td>"+data[i].getAttribute("Segment")+"</td><td>"+convertDateSP(data[i].getAttribute("Kickoff_x0020_Date"))+"</td><td>"+convertDateSP(data[i].getAttribute("Actual_x0020_PWS1"))+"</td><td>"+convertDateSP(data[i].getAttribute("Actual_x0020_PCM1"))+"</td><td>"+data[i].getAttribute("Project_x0020_Status")+"</td><td>"+data[i].getAttribute("Current_x0020_Status")+"</td></tr>";
+                }
+
+                $('.table tbody').append(html2);
+                    
+			});
+
+		}
+        
+    	
+	</script>
+</head>
+
+<body>
+	
+
+	<div class="Dashboard">
+		
+		<h1>Overview</h1>
+			
+			<span class="fa fa-bars">
+			
+			</span>
+        <br>
+	   
+        
+            <input type="text" class="search-box" placeholder="Project Title">
+            <select id="filter">
+              <option value="Title">By Title</option>
+              <option value="Project Manager">By Project Manager</option>
+            </select>
+        
+        
+        <table class ="table">
+            <thead>
+           <tr class="header">
+              <th>Title</th>
+                <th>Project Manager</th>  
+                <th>Project Description</th>
+                <th>Segment</th>
+                <th>Kick-off Date</th>
+                <th>Actual PWS1 Date</th>
+                <th>Actual PCM1 Date</th>
+                <th>Project Status</th>
+                <th>Current Status</th>
+            </tr>
+            </thead>
+		  <tbody></tbody>
+          			
+	</div>
+    
+   
+		
+	
+</body>
+
+</html>

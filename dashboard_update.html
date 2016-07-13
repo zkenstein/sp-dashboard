@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+    
+<head>
+    <!--Normally Jquery loading should be placed right before the closing body tag. This way we can load other things first before loading the necessary library. But in doing so we also need to insert our scripts at the same spot. This way the script will wait first for the jquery library to be loaded before referencing it-->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script type="text/javascript" src="http://mysite/personal/tm36250/a/jquery/jquery.SPServices-2014.02.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/sharepointplus/3.12.0/sharepointplus.min.js"></script>
+    <link href="http://code.jquery.com/ui/1.10.4/themes/flick/jquery-ui.css" rel="stylesheet">
+    <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script type="text/javascript">
+        
+		
+		$(document).ready(function(projTitle) {
+             
+            
+             /*This is to get current user for access purpose. This way when a user is logged in we can check whether that person belongs to a group that can perform any 'Contribution' to the data. By checking on the login id against a list of the allowed users.*/
+            var user=$().SPServices.SPGetCurrentUser({
+			  fieldName: "Name",
+			  debug: false
+			 
+			});
+        
+            /*Here we use the Sharepoint Plus method. We retrieve the login of current user from the SP Services method (Example: TMMASTER\TM36250). Then we check whether this id belongs to the 'Project Managers' group. Only users from this group are allowed to perform any modification. So from here we can like filter who will be able to perform edit.*/
+             $SP().isMember({user:user,group:"Project Managers",url:"http://mysite/personal/tm36250/a/"}, function(isMember) {
+                 if (isMember)
+                 {
+                    /*Here it means that the user is a member of the 'Project Manager' group. We get the Name associated to this id to begin filtering of the person's project*/
+                    $SP().getUserInfo(user,{url:"http://mysite/personal/tm36250/a/"}, function(info)
+                    {
+                        if (typeof info === "string")
+                            alert("Error:"+info); // there was a problem so we show it
+                        else{
+                            /*info.Name will hold the value of the name associated to the id(i.e Mohamad Shahidan Majid Bin Allapitchai).
+                            We will add a welcome message based on this name on the webpage.*/
+                            var html = "<h2>Welcome "+info.Name+"</h2>";
+                            /*Append the html code above to the body*/
+                            $("body").append(html);
+                             /*To avoid populating the HTML form with all the projects in the Sharepoint List, we will only query only projects associated to this Name. This way the PM is only allowed to select and perform modification based on the projects assigned to him/her.*/
+                            $SP().list('Projects').get({fields:"Title",where:"SP_x0020_Username = '"+info.Name+"'"},function(data)
+                           {
+                                /*Create a default selection option. Once another option has been selected this option can longer be selected. This is to avoid the complexity of populating the form based on the initial given value of the options. Since we only populate the form based on the selection of an option,it is better to prompt the PM to select the project that needs to be updated.*/
+                                var htmlOpt = "<option disabled selected value> -- Select your project -- </option>";
+                                for (var i=0; i<data.length; i++) 
+                                {
+                                    /*Here we populate the options associated to the Title field. Title here refers to the project Title. Once a project is selected we trigger the on-change function below. Possible problem in the future, we didn't specify the value of the option since we used the text value instead. It was noticed that if we use value only one-word string is selected via the .val() method. For example Wireless Gateway will be only be Wireless.*/
+                                    htmlOpt+="<option value="+data[i].getAttribute("Title")+">"+data[i].getAttribute("Title")+"</option>";
+
+                                }
+
+                                /*Afterh creating the html code, we append to the dropdown list of the Title field.*/
+                                 $("#proj").append(htmlOpt);
+
+                           });
+
+                        }
+                    });
+
+                 }
+             /*Else overlay Access Denied*/
+			});
+            
+            //===========================
+            // On change 
+            //===========================
+            
+            /*This function will be triggered once PM selects a Project from the Title field.*/
+            $('#proj').on("change",function() {
+                /*Here we know that user has selected a project, so we need to first grab the name of the Project.*/
+               var projTitle= $('#proj').find('option:selected').text();
+                
+                /*Now we need to query all related field of this project so that we can prefill the form with the values from the Sharepoint List.*/
+                $SP().list('Projects').get({fields:"Description,Segment,Kickoff_x0020_Date,Project_x0020_Status",where:"Title = '"+projTitle+"'"},function(data)
+                {   
+                    $('#desc').val(data[0].getAttribute("Description"));
+                    $('#calendar').val(data[0].getAttribute("Kickoff_x0020_Date"));
+         
+                    /*Since the status of project can change, the html form will provide the related options for this field. So we check based on the queried value and associate it accordingly to the form by using the switch case below.*/
+                    switch(data[0].getAttribute("Project_x0020_Status")) {
+                        case "Pending Approval":
+                          $("#status").val("Pending Approval")
+                          break;
+                        case "Concept":
+                          $("#status").val("Concept")
+                          break;
+                        case "Development":
+                          $("#status").val("Development")
+                          break;
+                           case "Launched":
+                          $("#status").val("Launched")
+                          break;
+                           case "KIV":
+                          $("#status").val("KIV")
+                          break;
+                            case "Discontinued":
+                          $("#status").val("Discontinued")
+                          break;
+                        // add the default keyword here
+                  }
+                    
+                  });
+                
+                
+            });
+
+            /*This is the code to activate the Datepicker.We will only display it once user has clicked the date field of the form. This is to avoid showing the calendar all the time and masking other fields for selection.*/
+             $('#calendar').click(function() {
+                 /*We set the format to be used once a date is selected.*/
+                $( "#calendar" ).datepicker({ dateFormat: "dd-mm-yy" });
+                 /*We display the calendar.*/
+                $( "#calendar" ).datepicker("show");
+            });
+            
+            
+            $('#update').on("click",function() {
+              // $SP().list('Projects').update({Project_x0020_Status:"Launched"},{where:"Title = '"+$('#proj').find('option:selected').text()+"'"});
+                $SP().list('Projects').update({Project_x0020_Status:$('#status').find('option:selected').text()},{where:"Title = '"+$('#proj').find('option:selected').text()+"'"});
+                
+                var date= $( "#calendar" ).val().split("-");
+                var date2=date[0]+"/"+date[1]+"/"+date[2]
+                console.log(date[0]+" "+date[1]+" "+date[2]+" "+date2);
+                console.log($SP().toSPDate(new Date(date[2],date[1]-1,date[0]))); // --> "2012-10-31 00:00:00"
+                /*$SP().list('Projects').update({Kickoff_x0020_Date:$('#calendar').find('option:selected').text()},{where:"Title = '"+$('#proj').find('option:selected').text()+"'"});*/
+                
+                /*Need to find out why month increment automatic by 1*/
+                $SP().list('Projects').update({Kickoff_x0020_Date:$SP().toSPDate(new Date(date[2],date[1]-1,date[0]))},{where:"Title = '"+$('#proj').find('option:selected').text()+"'"});
+                
+            });
+        
+        });
+    </script>
+    
+</head>    
+<body>
+    
+    <div id="editform">
+        <p>Choose your projects: <Select id="proj"></Select></p>
+        <p>Description: <input type="text" id="desc"></p>
+        <p>Kickoff Date: <input type="text" id="calendar"></p>
+        <p>Project Status: 
+            <Select id="status">
+                <option > Concept</option>
+                <option > Pending Approval</option>
+                <option > Development</option>
+                <option > Launched</option>
+                <option > KIV</option>
+                <option > Discontinued</option>
+            </Select>
+        <input type="submit" value="Submit" id="update">
+        </p>
+        
+    </div>
+
+<p>Note that the form itself is not visible.</p>
+
+<p>Also note that the default width of a text input field is 20 characters.</p>
+
+    
+
+</body>
+</html>

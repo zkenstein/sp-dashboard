@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html>
+    
+<head>
+    <!--Normally Jquery loading should be placed right before the closing body tag. This way we can load other things first before loading the necessary library. But in doing so we also need to insert our scripts at the same spot. This way the script will wait first for the jquery library to be loaded before referencing it-->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script type="text/javascript" src="http://mysite/personal/tm36250/a/jquery/jquery.SPServices-2014.02.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/sharepointplus/3.12.0/sharepointplus.min.js"></script>
+    <link href="http://code.jquery.com/ui/1.10.4/themes/flick/jquery-ui.css" rel="stylesheet">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    
+    <style>
+        body {font-family: "Lato", sans-serif;}
+        
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            padding-top: 100px; /* Location of the box */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+        
+        /* Modal Content */
+        .modal-content {
+            position: relative;
+            background-color: #fefefe;
+            margin: auto;
+            padding: 0;
+            border: 1px solid #888;
+            width: 80%;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+            -webkit-animation-name: animatetop;
+            -webkit-animation-duration: 0.4s;
+            animation-name: animatetop;
+            animation-duration: 0.4s
+        }
+        
+                /* Add Animation */
+        @-webkit-keyframes animatetop {
+            from {top:-300px; opacity:0}
+            to {top:0; opacity:1}
+        }
+
+        @keyframes animatetop {
+            from {top:-300px; opacity:0}
+            to {top:0; opacity:1}
+        }
+
+        /* The Close Button */
+        .close {
+            color: white;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-header {
+            padding: 2px 16px;
+            background-color: #5cb85c;
+            color: white;
+        }
+
+        .modal-body {padding: 2px 16px;}
+
+        .modal-footer {
+            padding: 2px 16px;
+            background-color: #5cb85c;
+            color: white;
+        }
+
+        .formField
+        {
+            width: 300px;
+        }
+/*
+        input, select, textarea{
+            color: #ff0000;;
+        }
+*/
+        
+        ul.tab {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+        }
+
+        /* Float the list items side by side */
+        ul.tab li {float: left;}
+
+        /* Style the links inside the list items */
+        ul.tab li a {
+            display: inline-block;
+            color: black;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            transition: 0.3s;
+            font-size: 17px;
+        }
+
+        /* Change background color of links on hover */
+        ul.tab li a:hover {
+            background-color: #ddd;
+        }
+
+        /* Create an active/current tablink class */
+        ul.tab li a:focus, .active {
+            background-color: #ccc;
+        }
+
+        /* Style the tab content */
+        .tabcontent {
+            display: none;
+            padding: 6px 12px;
+            -webkit-animation: fadeEffect 1s;
+            animation: fadeEffect 1s;
+        }
+
+        @-webkit-keyframes fadeEffect {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+
+        @keyframes fadeEffect {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+    </style>
+    
+    
+    <script type="text/javascript">
+        
+        function switchTab(evt,phase)
+        {    
+                var i, tabcontent, tablinks;
+                tabcontent = document.getElementsByClassName("tabcontent");
+                for (i = 0; i < tabcontent.length; i++) {
+                    tabcontent[i].style.display = "none";
+                }
+                tablinks = document.getElementsByClassName("tablinks");
+                for (i = 0; i < tablinks.length; i++) {
+                    tablinks[i].className = tablinks[i].className.replace(" active", "");
+                }
+                document.getElementById(phase).style.display = "block";
+                evt.currentTarget.className += " active";
+        }
+        
+        $(document).ready(function()
+        {
+            /*Set Jquery UI date format.*/
+            $( ".datepick" ).datepicker({ dateFormat: "dd-mm-yy" });
+            
+            var peopleTextArea="";
+            var name="";
+        
+          /*When user click on Add People this function is triggered.*/
+          $(".pickButton").click(function(){
+              /*Since the class pickButton is common for all AddPeople button, we need to get the id associated to the textarea.
+              If user click on Add People for Project TTMA, then need to get the textarea for Project TTMA before adding the people.
+              For this we grab the id associated to the Add People button, then get the previous element which is the associated text area.
+              */
+              var addPeopleButtonID=""
+              addPeopleButtonID=$(this).attr('id');
+              /*prev() method will grab the previous HTML element.In our case is the textarea.*/
+              peopleTextArea=$("#"+addPeopleButtonID).prev();
+              /*Trigger the Modal to appear.*/
+              modal.style.display = "block";
+         
+          }); 
+            
+          
+          /*When user type in something in the search bar in the People Picker, this function is triggered.*/
+          $("#searchName").keyup(function(){
+            /*If there's a new search and the result of the previous search is not added, then hide the HTML elements(paragraph and button).*/
+//             $(".result p").hide();
+            $(".result p").remove();
+             $(".result input").hide();
+              /*We remove the previous html element if no result found.So that the next click will not cumulate previous searches.*/
+              if($(".result p").text()=="404 result not found")
+                  $(".result p").remove();
+    
+          });
+    
+         /*When user has entered a name in the search bar in the People Picker, then click on Search this function is triggered.*/
+         $("#selectPeople").click(function(){
+            var html="";
+            console.log("searching please wait..");
+            /*Perform a search based on the name keyed in by user.*/
+            $SP().addressbook($("#searchName").val(), {limit:1}, function(people) {
+              /*Once we found the person, store the name and Email in the form of Name(Email).*/ 
+              for (var i=0; i < people.length; i++)html=people[0][people[0][2]]+"("+people[0][people[0][3]]+")";
+                  
+                if(html=="")
+               /*If no result is found then append the error  message in the same div.If result found append the result in the div together with an Add button*/
+                    $("#searchResults").append("<div class=\"result\"><p>404 result not found</p><div>");
+                else
+                    $("#searchResults").append("<div class=\"result\"><p>"+html+"</p><input type=\"button\" value=\"Add\" id=\"add\"></div>");
+                
+                /*Trigger this function if the user clicks on Add after a search result is given.*/
+                $('.result input').click(function(){        
+                    /*Store the search result in a variable.*/
+                    var temp=$(".result p").text()+";";
+                    
+                    /*Get the current value of in the input box and append it with new value of the search result. Note, peopleTextArea here is the textarea HTML element next to the Add People button.*/
+                    peopleTextArea.val(peopleTextArea.val()+"\n"+temp);
+                    
+                    /*Once the Add button is clicked and we've added in the person in the form, we hide the results.*/
+                    $(".result input").hide();
+                    /*We remove the html element.So that the next click will not cumulate previous searches.*/
+                    $(".result p").remove();
+                });
+
+
+            });
+
+                });
+
+                // Get the modal
+                var modal = document.getElementById('myModal');
+
+                //// Get the button that opens the modal
+                //var btn = document.getElementById("myBtn");
+
+                // Get the <span> element that closes the modal
+                var span = document.getElementsByClassName("close")[0];
+
+                // When the user clicks on <span> (x), close the modal
+                span.onclick = function() {
+                    modal.style.display = "none";
+                }
+
+                // When the user clicks anywhere outside of the modal, close it
+                window.onclick = function(event) {
+                    if (event.target == modal) {
+                        modal.style.display = "none";
+                    }
+                }
+            
+            /*By default display the 1st tab.*/
+            document.getElementById("projDetails").style.display = "block";
+            
+            /*========================================
+            QUICK TIPS*
+            
+             1.MAINTAIN THIS SYNTAX WHEN ADD/UPDATE:
+                 $SP().list("PD Project Dates").add({Project_x0020_Title:"63;#s",Title:"test10",Concept:"",POC:""});
+
+                 - We can add even if the value is empty with the condition that it has to be "" rather than something else like null/NaN.
+             
+             2.REMEMBER DONT EVER USE THE SYNTAX BELOW, IT DOESN'T WORK
+               $SP().list("PD Project Dates").add([{Project_x0020_Title:"36;#Wireless Gateway"}, {Title:"WG Planned Dates"}], {after:function() { alert("Done!"); });
+               
+             3.In Sharepoint, a List column should not have like the special symbols like numbers,because it will affect the field name when querying,adding,editing. What we can do is like define it for the 1st time all in letters and later on change it to numbers. Because there is a difference between a display name and field name.
+               
+            =========================================*/
+            
+            
+//            =========================================
+//            TEST AREA
+            
+            /*Add*/
+            //$SP().list("TEST").add({Title:"test3",kickoff:"2016-07-19",kickoff2:"2016-07-19"}); 
+            //$SP().list("PD Project Dates").add({Project_x0020_Title:"63;#s",Title:"test7",Concept:"2016-07-19",POC:"2016-07-29"});
+            /*Update*/
+            
+            //$SP().list("PD Project Dates").update({PCM_x0020_one:"2016-07-19"},{where:"Project_x0020_Title = 'DD'"});
+            //console.log("here");
+            
+//              $SP().list("PD Projects").get({fields:"Product_x0020_Owners,ID,Date_x0020_Type,Project_x0020_Title",where:"ID = '82'"},function(data)
+//            {
+//                console.log(data[0].getAttribute("ID"));
+//                console.log(data[0].getAttribute("Date_x0020_Type"));
+//                console.log(data[0].getAttribute("Project_x0020_Title"));
+//                console.log(data[0].getAttribute("Product_x0020_Owners"));
+//
+//            });
+            
+//            =========================================          
+            
+//            rethdayat@tm.com.my
+//            raswan@tm.com.my
+           //19;#Mohammad Rethdayat Bin Mohd Yusof;#24;#Norziana Zinel
+//            -1;#rethdayat@tm.com.my24-1;#raswan@tm.com.my
+          
+            /*PEOPLE:
+                When adding we must stick to the format below:
+                -1;#rethdayat@tm.com.my;#-1;#raswan@tm.com.my
+                
+                When updating, we must first query the related field, then we will get all the users in that column listed in the following manner:
+                19;#Mohammad Rethdayat Bin Mohd Yusof;#24;#Norziana Zinel
+                
+                Say now you add another person, then need to update like this:
+                19;#Mohammad Rethdayat Bin Mohd Yusof;#24;#Norziana Zinel;#-1;#raswan@tm.com.my
+                
+            */
+         // $SP().list("PD Projects").update({Product_x0020_Owners:"19;#Mohammad Rethdayat Bin Mohd Yusof;#24;#Norziana Zinel;#-1;#raswan@tm.com.my"},{where:"ID = '82'"});
+          //$SP().list("PD Projects").update({Product_x0020_Owners:"-1;#rethdayat@tm.com.my;#-1;#raswan@tm.com.my;#-1;#n-ziana.zinel@tm.com.my;#-1;#nmmyu@tm.com.my"},{where:"ID = '82'"});
+            
+            /*This function contains a Regex which will filter out email pattern from a list of names given as parameter.*/
+            function prepDataSP(emailPeople)
+            {
+                /*Regex to extract email in between brackets. Need to give out in more details as in /gi is meant do for the whole sentence.*/
+                var patt1 = /\(([^)]+)\)/gi,result="",resultSPFormat="";
+                result = emailPeople.match(patt1);
+                /*Extract email only if result is not Null.*/
+                if(result!=null)
+                {
+                    for (i=0;i<result.length;i++)
+                    {
+                        result[i]=result[i].replace("(","").replace(")","");
+                        
+                        if(i!=result.length-1)
+                            resultSPFormat+="-1;#"+result[i]+";#";
+                        else
+                            resultSPFormat+="-1;#"+result[i];
+                        
+                    }
+                    return resultSPFormat;
+                }
+                else
+                    return result="";
+            }
+            
+            /*When user clicks on the Create project button, we insert the details in the Sharepoint.*/
+            $('#submitParent').click(function(){
+                /*Input correction*/
+                var localPM,localTTMA,localPO,localPC,localBI,localSM;
+                
+                
+//                var regex1=/[0-9]/g;
+//                if($("#bNum").val()!="")
+//                {
+//                    if(regex1.test($("#bNum").val())==false) 
+//                        console.log("BE number must contain numbers"+$("#bNum").val());
+//                    else
+//                        console.log("BE number ok"+ $("#bNum").val());
+//                    
+//                    }
+//                else
+//                    console.log("BE number is not given");
+                
+                /*This whole block needs to be declared as a function.*/
+//                var str = "Mohamad Shahidan Majid Bin Allapitchai(TM36250@TM.COM.MY)";
+//                var patt1 = /\(([^)]+)\)/gi;
+//                var result = str.match(patt1);
+//                console.log(result);
+//                var temp=result[0].replace("(","").replace(")","");
+//                console.log("After cleanup :"+temp);
+                
+                localPM=prepDataSP($("#pMan").val());
+                localTTMA=prepDataSP($("#pTTMA").val());
+                localPO=prepDataSP($("#po").val());
+                localPC=prepDataSP($("#pc").val());
+                localBI=prepDataSP($("#bi").val());
+                localSM=prepDataSP($("#sm").val());
+                
+//                if ($( "#bNum" ).val()=="")
+//                    console.log("BE number is empty");
+//                else
+//                    console.log("BE number is not empty");
+//               $("#tab2").removeClass('tablinks').addClass('tablinks active');
+//                $("#tab1").css("background-color","	#90EE90");
+//                document.getElementById("projDetails").style.display = "none";
+//                document.getElementById("projDates").style.display = "block";
+////
+//                /*We grab all the dates*/
+                 console.log("Title: "+$( "#title" ).val());
+                 console.log("Official Title: "+$( "#offTitle" ).val());
+                 console.log("Segment: "+$( "#seg" ).val());
+                 console.log("AOP: "+$( "#aop" ).val());
+                 console.log("Spillover: "+$( "#spill" ).val());
+                 console.log("Key Callout: "+$( "#kCall" ).val());  
+                 console.log("BE Number: "+$( "#bNum" ).val());
+                 console.log("Project Managers: "+localPM);
+                 console.log("Project TTMA: "+localTTMA);
+                 console.log("Product Owners: "+localPO);
+                 console.log("Project Charter: "+localPC);
+                 console.log("Business Integration: "+localBI);
+                 console.log("Service Management/Operation: "+localSM);
+                 console.log("Load: "+$( "#load" ).val());
+                 console.log("USD Sessions: "+$( "#usd" ).val());
+                
+                /*There might be a delay when posting data in Sharepoint.Might require a timer or something.The code below works*/
+                $SP().list("PD Projects").add
+                ({
+                    Title:$("#title").val(),
+                    Official_x0020_Title:$("#offTitle").val(),
+                    Segment:$("#seg").val(),
+                    AOP_x0020_Status:$("#aop").val(),
+                    Spillover:$("#spill").val(),
+                    Key_x0020_Callout:$("#kCall").val(),
+                    BE_x0020_Number:$("#bNum").val(),
+                    Project_x0020_Managers:localPM,
+                    Project_x0020_TTMA:localTTMA,
+                    Product_x0020_Owners:localPO,
+                    Project_x0020_Charter:localPC,
+                    Business_x0020_Integration:localBI,
+                    Service_x0020_Mgmt:localSM,
+                    Load:$("#load").val(),
+                    USD_x0020_Sessions:$("#usd").val()
+                });
+                
+            });
+            
+            
+            
+            function convertDateSP(dateToConvert)
+            {
+                /*If the value is not filled in then just send an empty string*/
+                if(dateToConvert=="") return "";
+                /*If the value contains a value then convert it to SP date*/
+                dateToConvert=dateToConvert.split("-");
+                return $SP().toSPDate(new Date(dateToConvert[2],dateToConvert[1]-1,dateToConvert[0]));
+            }
+            
+            
+             $('#dateUpdate').click(function() 
+             {
+                 
+                 /*We grab all the dates*/
+//                 console.log("Concept: "+convertDateSP($( "#concept" ).val()));
+//                 console.log("Pre IA: "+convertDateSP($( "#preIA" ).val()));
+//                 console.log("PCM1 : "+convertDateSP($( "#pcm1" ).val()));
+//                 console.log("POC: "+convertDateSP($( "#poc" ).val()));
+//                 console.log("PSW1: "+convertDateSP($( "#psw1" ).val()));
+//                 console.log("PSW2: "+convertDateSP($( "#psw2" ).val()));
+//                 console.log("PCM2: "+convertDateSP($( "#pcm2" ).val()));
+//                 console.log("Proc: "+convertDateSP($( "#proc" ).val()));
+//                 console.log("DEV: "+convertDateSP($( "#dev" ).val()));
+//                 console.log("Sys Drop: "+convertDateSP($( "#sysdrop" ).val()));
+//                 console.log("GTM: "+convertDateSP($( "#gtm" ).val()));
+                 
+                 
+                 /*Now we grab all the dates that has been selected and create an entry in PD Project Dates list. This is of type Planned.*/
+                 $SP().list("PD Project Dates").add({Project_x0020_Title:IDParent+";#"+titleParent,Title:titleParent.concat(" Planned"),Concept:convertDateSP($("#concept").val()),Pre_x0020_IA:convertDateSP($("#preIA").val()),PCM_x0020_one:convertDateSP($("#pcm1").val()),POC:convertDateSP($("#poc").val()),PSW_x0020_one:convertDateSP($("#psw1").val()),PSW_x0020_two:convertDateSP($("#psw2").val()),PCM_x0020_two:convertDateSP($("#pcm2").val()),Proc:convertDateSP($("#proc").val()),Dev:convertDateSP($("#dev").val()),Sys_x0020_Drop:convertDateSP($("#sysdrop").val()),GTM:convertDateSP($("#gtm").val())});
+                 
+                 /*We need to add another entry in PD Project Dates list, this time the date is of type actual. This way during edit PM will update in this entry only. This entry will hold the actual dates as compared to Planned dates. So during creation we will leave them blank. */
+                 $SP().list("PD Project Dates").add({Project_x0020_Title:IDParent+";#"+titleParent,Title:titleParent.concat(" Actual"),Date_x0020_Type:"Actual"});
+                 
+                 /*Once the Actual date entry has been created we need to associate it to a Child item in PD Project Status list.*/
+                 setTimeout(function(){
+                     $SP().list("PD Project Dates").get({fields:"ID,Date_x0020_Type,Project_x0020_Title",where:"Title = '"+titleParent.concat(" Actual")+"'"},function(data)
+                    {
+                        console.log(titleParent.concat(" Actual"));
+                        console.log(data[0].getAttribute("ID"));
+                        console.log(data[0].getAttribute("Date_x0020_Type"));
+                        console.log(data[0].getAttribute("Project_x0020_Title"));
+                         
+                        $SP().list("PD Project Status").add({Project_x0020_Title:data[0].getAttribute("ID")+";#"+titleParent.concat(" Actual"),Title:titleParent.concat(" Actual Status")}); 
+
+                    });
+
+                 
+                 },5000);
+                 
+             });
+            
+            /*This variable is used to store Parent item details:Title & ID.*/
+            var titleParent="",IDParent="";
+            
+            /*Get the user name using method from SP Services API.*/
+            var user=$().SPServices.SPGetCurrentUser({
+			  fieldName: "Name",
+			  debug: false
+			 
+			});
+            
+//            var previousURL=document.referrer;
+//            previousURL=previousURL.split("?");
+//            previousURL=previousURL[0];
+
+            /*This is function is triggered when user acces this page.*/
+            $SP().isMember({user:user,group:"Project Managers",url:"http://mysite/personal/tm36250/a/"}, function(isMember)
+            {
+                /*Checks if user is a member of the Project Managers groupd*/
+                if (isMember)
+                {
+                    $SP().getUserInfo(user,{url:"http://mysite/personal/tm36250/a/"}, function(info)
+                    {
+                        if (typeof info === "string")
+                        alert("Error:"+info); // there was a problem so we show it
+                        else
+                            {
+                                alert("Login in as : "+info.Name+"\nID : "+user+"\nEmail : "+info.Email);
+                                /*Here we populate the textarea for Project Managers with the current user info.We assume that the user who goes to this page is one of the Project Managers.*/
+                                $("#pMan").val(info.Name+"("+info.Email+")");
+                            }
+
+                        $("#header").append("<h3>Welcome "+info.Name+",</h3>");
+                     });
+                 
+                 } //Else not member isplay 403 forbidden message.
+           
+            });
+            
+            
+             /*Transition from tab to tab*/
+            $(".next").click(function(){
+//                console.log($(this).parent().attr('id'));    
+//               document.getElementById("projDetails").style.display = "none";
+//              document.getElementById("projDates").style.display = "block";
+              
+//                document.getElementById($(this).parent().attr('id')).style.display = "none";
+//                document.getElementById($(this).parent().attr('id')).style.display = "block";
+                
+//                var currentDiv=$(this).parent().attr('id');
+                var currentDiv=$(this).parent();
+                 
+                /*What I need to do:
+                    When User click on Next, verify the Input.
+                    If ok then switch the Tabs
+                */
+                /*Hide current tab and display next tab*/
+                document.getElementById(currentDiv.attr('id')).style.display = "none";
+                document.getElementById(currentDiv.next().attr('id')).style.display = "block";
+                
+            });
+            
+              /*Transition from tab to tab*/
+            $(".prev").click(function(){
+
+                var currentDiv=$(this).parent();
+                 
+                /*Hide current tab and display next tab*/
+                document.getElementById(currentDiv.attr('id')).style.display = "none";
+                document.getElementById(currentDiv.prev().attr('id')).style.display = "block";
+                
+            });
+            
+                
+        });
+        
+        
+       
+        
+        
+    </script>
+    
+</head>    
+<body>
+    
+    <div id="header"></div>
+    
+        <ul class="tab">
+          <li><a href="#" class="tablinks active" id="tab1" >Step 1: Register Project Details</a></li>
+          <li><a href="#" class="tablinks" id="tab2" >Step 2: Key in Project Dates</a></li>
+          <li><a href="#" class="tablinks" id="tab3" >Step 3: Start Project Tracking</a></li>
+        </ul>
+    
+<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--> 
+<!--    PROJECT DETAILS
+        ***************
+-->
+       <div id="projDetails" class="tabcontent">
+      <h3>Key in Project Details</h3>
+        Title*:<br>
+        <input class="formField" type="text" id="title"><br>
+        <p id="demo"></p>
+        Official Title:<br>
+        <input class="formField" type="text" id="offTitle"><br>
+        Segment*:<br>
+        <Select class="formField" id="seg">
+                <option disabled selected value> -- Select your project -- </option>;
+                <option value="Mass Market">Mass Market</option>
+                <option value="Managed Account">Managed Account</option>
+                <option value="Global &amp; Wholesale">Global &amp; Wholesale</option>
+        </Select><br>
+        AOP Status*:<br>
+        <Select class="formField" id="aop">
+                <option disabled selected value> -- Select your project -- </option>;
+                <option value="AOP">AOP</option>
+                <option value="Non AOP">Non AOP</option>
+        </Select><br>
+        Spillover*:<br>
+        <Select class="formField" id="spill">
+                <option disabled selected value> -- Select your project -- </option>;
+                <option value="Spillover">Spillover</option>
+                <option value="Non Spillover">Non Spillover</option>
+        </Select><br>
+        Key Callout:<br>
+        <input class="formField" type="text" id="kCall"><br>
+        BE Number:<br>
+        <input class="formField" type="text" class="textarea" id="bNum"><br>
+        Project Managers*:<br>
+<!--    Need to consider this in the future. Populate group members under dropdown menu.    
+        <Select id="pMan"></Select></p>-->
+        <textarea rows="4" cols="50" id="pMan"></textarea><input type="button" value="Add people" class="pickButton" id="pickPMan"><br>
+        Project TTMA:<br>
+        <textarea rows="4" cols="50" id="pTTMA"></textarea><input type="button" value="Add people" class="pickButton" id="pickTTMA"><br>
+
+        Product Owners:<br>
+        <textarea rows="4" cols="50" id="po"></textarea><input type="button" value="Add people" class="pickButton" id="pickPO"><br>
+        Project Charter:<br>
+        <textarea rows="4" cols="50" id="pc"></textarea><input type="button" value="Add people" class="pickButton" id="pickPC"><br>
+        Business Integration:<br>
+        <textarea rows="4" cols="50" id="bi"></textarea><input type="button" value="Add people" class="pickButton" id="pickBI"><br>
+        Service Management/Operation:<br>
+        <textarea rows="4" cols="50" id="sm"></textarea><input type="button" value="Add people" class="pickButton" id="pickSM"><br>
+        Load:<br>
+        <Select class="formField" id="load">
+                <option value="Simple">Simple</option>
+                <option value="Medium">Medium</option>
+                <option value="Complex">Complex</option>
+        </Select><br>
+        USD Sessions:<br>
+        <input class="formField" type="text" id="usd"><br>
+        
+        
+<!--        <button type="submit" value="Submit" id="submitParent">Create Project</button>-->
+        <button type="submit" value="Submit" class="next" style="position:absolute; left: 500px;">Next</button>
+<!--        <button type="submit" value="Submit" id="submitParent" onclick="switchTab(event, 'projDates')">Create Project</button>-->
+        <br>
+      
+    </div>
+    
+<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--> 
+    
+
+<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--> 
+<!--    PROJECT DATES
+        ***************
+-->
+
+    <div id="projDates" class="tabcontent">
+      <h3>Key in Projet Dates</h3>
+      <p>Please choose the planned dates for your newly created project.</p>
+        
+        Concept:<br>
+        <input type="text" class="datepick " id="concept"><br>
+        Pre IA:<br>
+        <input type="text" class="datepick" id="preIA"><br>
+        PCM1:<br>
+        <input type="text" class="datepick" id="pcm1"><br>
+        POC:<br>
+        <input type="text" class="datepick" id="poc"><br>
+        PSW1:<br>
+        <input type="text" class="datepick" id="psw1"><br>
+        PSW2:<br>
+        <input type="text" class="datepick" id="psw2"><br>
+        PCM2:<br>
+        <input type="text" class="datepick" id="pcm2"><br>
+        Procurement:<br>
+        <input type="text" class="datepick" id="proc"><br>
+        Development:<br>
+        <input type="text" class="datepick" id="dev"><br>
+        System Drop:<br>
+        <input type="text" class="datepick" id="sysdrop"><br>
+        Go-to-Market:<br>
+        <input type="text" class="datepick" id="gtm"><br>  
+        
+<!--        <input type="submit" value="Submit" id="dateUpdate"></input>-->
+        <button type="submit" value="Submit" class="prev">Previous</button>
+        <button type="submit" value="Submit" class="next" style="position:absolute; left: 500px;">Next</button>
+
+    </div>
+<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+    
+<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--> 
+<!--    VERIFY STATUS/ GO TO SP
+        **********************
+-->    
+    <div id="projStatus" class="tabcontent">
+      <h3>Verify Project Status</h3>
+      <p>You have registered the following projects to be tracked:</p>
+<!--        <input type="submit" value="Add Project" id="insertDataSP"></input>-->
+        <button type="submit" value="Submit" id="submitParent" style="position:absolute; left: 250px;">Create Project</button>
+        <button type="submit" value="Submit" class="prev">Previous</button>
+    </div>
+
+    
+<!-- =========================================================   -->
+<!--    People Picker
+        **********************
+-->
+  <div id="myModal" class="modal">
+
+  <!-- Modal content -->
+  <div class="modal-content">
+    <div class="modal-header">
+      <span class="close">Close</span>
+      <h2>People Picker</h2>
+    </div>
+    <div class="modal-body">
+      <p>Type in the name of the person you are searching..</p>
+     
+         <input class="formField" type="text" placeholder="People picker..." required id="searchName">
+        <input type="button" value="Search" id="selectPeople">
+        <div id="searchResults"></div>
+    </div>
+    <div class="modal-footer">
+      <h3>Modal Footer</h3>
+    </div>
+  </div>
+
+</div>
+    
+
+  <!-- =========================================================   -->
+</body>
+</html>
